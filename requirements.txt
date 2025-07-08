@@ -7,7 +7,7 @@ aioaria2
 aioqbt
 cloudscraper
 dnspython
-tgrytpo
+ElectroCrypto
 kurigram
 fastapi
 feedparser
