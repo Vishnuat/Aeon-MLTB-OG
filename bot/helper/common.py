@@ -136,7 +136,7 @@ class TaskConfig:
         self.thumb = None
         self.excluded_extensions = []
         self.files_to_proceed = []
-        self.is_super_chat = self.message.chat.type.name in ["SUPERGROUP", "CHANNEL"]
+        self.is_super_chat = self.message.chat.type.name in ["SUPERGROUP", "CHANNEL", "FORUM"]
 
         self.yt_privacy = None
         self.yt_mode = "playlist"
@@ -435,7 +435,7 @@ class TaskConfig:
                         self.hybrid_leech = False
                     else:
                         uploader_id = TgClient.user.me.id
-                        if chat.type.name not in ["SUPERGROUP", "CHANNEL", "GROUP"]:
+                        if chat.type.name not in ["SUPERGROUP", "CHANNEL", "GROUP", "FORUM"]:
                             self.user_transmission = False
                             self.hybrid_leech = False
                         else:
@@ -459,7 +459,7 @@ class TaskConfig:
                             raise ValueError("Chat not found!")
                     else:
                         uploader_id = self.client.me.id
-                        if chat.type.name in ["SUPERGROUP", "CHANNEL", "GROUP"]:
+                        if chat.type.name in ["SUPERGROUP", "CHANNEL", "GROUP", "FORUM"]:
                             member = await chat.get_member(uploader_id)
                             if (
                                 not member.privileges.can_manage_chat
