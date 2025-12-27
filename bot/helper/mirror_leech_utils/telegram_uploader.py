@@ -30,8 +30,9 @@ from tenacity import (
     wait_exponential,
 )
 
-from bot.core.aeon_client import TgClient
+from bot import intervals
 from bot.core.config_manager import Config
+from bot.core.telegram_manager import TgClient
 from bot.helper.aeon_utils.caption_gen import generate_caption
 from bot.helper.ext_utils.bot_utils import sync_to_async
 from bot.helper.ext_utils.files_utils import (
@@ -113,7 +114,6 @@ class TelegramUploader:
                     self._sent_msg = await TgClient.user.send_message(
                         chat_id=self._listener.up_dest,
                         text=msg,
-                        disable_web_page_preview=True,
                         message_thread_id=self._listener.chat_thread_id,
                         disable_notification=True,
                     )
@@ -121,7 +121,6 @@ class TelegramUploader:
                     self._sent_msg = await self._listener.client.send_message(
                         chat_id=self._listener.up_dest,
                         text=msg,
-                        disable_web_page_preview=True,
                         message_thread_id=self._listener.chat_thread_id,
                         disable_notification=True,
                     )
@@ -139,7 +138,6 @@ class TelegramUploader:
                 self._sent_msg = await TgClient.user.send_message(
                     chat_id=self._listener.message.chat.id,
                     text="Deleted Cmd Message! Don't delete the cmd message again!",
-                    disable_web_page_preview=True,
                     disable_notification=True,
                 )
         else:
@@ -249,6 +247,8 @@ class TelegramUploader:
                 self._error = ""
                 self._up_path = f_path = ospath.join(dirpath, file_)
                 if not await aiopath.exists(self._up_path):
+                    if intervals["stopAll"]:
+                        return
                     LOGGER.error(f"{self._up_path} not exists! Continue uploading!")
                     continue
                 try:
@@ -339,7 +339,7 @@ class TelegramUploader:
             return
         if self._total_files == 0:
             await self._listener.on_upload_error(
-                "No files to upload. In case you have filled EXCLUDED_EXTENSIONS, then check if all files have those extensions or not.",
+                "No files to upload. In case you have filled EXCLUDED/INCLUDED EXTENSIONS, then check if all files have those extensions or not.",
             )
             return
         if self._total_files <= self._corrupted:
@@ -378,6 +378,8 @@ class TelegramUploader:
                 thumb_path = f"{self._path}/yt-dlp-thumb/{file_name}.jpg"
                 if await aiopath.isfile(thumb_path):
                     thumb = thumb_path
+                elif await aiopath.isfile(thumb_path.replace("/yt-dlp-thumb", "")):
+                    thumb = thumb_path.replace("/yt-dlp-thumb", "")
                 elif is_audio and not is_video:
                     thumb = await get_audio_thumbnail(self._up_path)
 

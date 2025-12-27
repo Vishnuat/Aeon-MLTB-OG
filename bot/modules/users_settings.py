@@ -11,9 +11,15 @@ from aiofiles.os import path as aiopath
 from pyrogram.filters import create
 from pyrogram.handlers import MessageHandler
 
-from bot import auth_chats, excluded_extensions, sudo_users, user_data
-from bot.core.aeon_client import TgClient
+from bot import (
+    auth_chats,
+    excluded_extensions,
+    included_extensions,
+    sudo_users,
+    user_data,
+)
 from bot.core.config_manager import Config
+from bot.core.telegram_manager import TgClient
 from bot.helper.ext_utils.bot_utils import (
     get_size_bytes,
     new_task,
@@ -289,7 +295,7 @@ Add to Playlist ID: <code>{yt_add_to_playlist_id}</code>"""
             and Config.UPLOAD_PATHS
         ):
             upload_paths = Config.UPLOAD_PATHS
-        else:
+        if not upload_paths:
             upload_paths = "None"
 
         buttons.data_button("Upload Paths", f"userset {user_id} menu UPLOAD_PATHS")
@@ -332,9 +338,23 @@ Add to Playlist ID: <code>{yt_add_to_playlist_id}</code>"""
         else:
             ex_ex = "None"
 
-        ns_msg = "Added" if user_dict.get("NAME_SUBSTITUTE", False) else "None"
         buttons.data_button(
-            "Name Subtitute",
+            "Included Extensions", f"userset {user_id} menu INCLUDED_EXTENSIONS"
+        )
+        if user_dict.get("INCLUDED_EXTENSIONS", False):
+            inc_ex = user_dict["INCLUDED_EXTENSIONS"]
+        elif "INCLUDED_EXTENSIONS" not in user_dict:
+            inc_ex = included_extensions
+        else:
+            inc_ex = "None"
+        if user_dict.get("NAME_SUBSTITUTE", False) or (
+            "NAME_SUBSTITUTE" not in user_dict and Config.NAME_SUBSTITUTE
+        ):
+            ns_msg = "Added"
+        else:
+            ns_msg = "None"
+        buttons.data_button(
+            "Name Substitute",
             f"userset {user_id} menu NAME_SUBSTITUTE",
         )
         if user_dict.get("NAME_PREFIX", False):
@@ -392,6 +412,7 @@ Upload Paths is <code>{upload_paths}</code>
 Name substitution is <code>{ns_msg}</code>
 Name prefix is <code>{np_msg}</code>
 Excluded Extensions is <code>{ex_ex}</code>
+Included Extensions is <code>{inc_ex}</code>
 YT-DLP Options is <code>{ytopt}</code>
 FFMPEG Commands is <code>{ffc}</code>
 Metadata is <code>{mdt}</code>
@@ -483,6 +504,12 @@ async def set_option(_, message, option):
     elif option == "EXCLUDED_EXTENSIONS":
         fx = value.split()
         value = ["aria2", "!qB"]
+        for x in fx:
+            x = x.lstrip(".")
+            value.append(x.strip().lower())
+    elif option == "INCLUDED_EXTENSIONS":
+        fx = value.split()
+        value = []
         for x in fx:
             x = x.lstrip(".")
             value.append(x.strip().lower())
@@ -579,7 +606,7 @@ async def ffmpeg_variables(
     if ffc:
         buttons = ButtonMaker()
         if key is None:
-            msg = "Choose which key you want to fill/edit varibales in it:"
+            msg = "Choose which key you want to fill/edit variables in it:"
             for k, v in list(ffc.items()):
                 add = False
                 for i in v:

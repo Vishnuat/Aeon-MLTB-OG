@@ -21,12 +21,13 @@ STREAMWISH_API = ""
 EXCLUDED_EXTENSIONS = (
     ""  # Space separated file extensions to exclude (e.g., .log .exe)
 )
+INCLUDED_EXTENSIONS = ""
 INCOMPLETE_TASK_NOTIFIER = (
     False  # Notify for incomplete tasks on restart (requires DATABASE_URL)
 )
 YT_DLP_OPTIONS = {}  # Dictionary of yt-dlp options, e.g., {"format": "bestvideo+bestaudio/best"}
 USE_SERVICE_ACCOUNTS = False
-NAME_SUBSTITUTE = ""  # Replace/remove words: "source1/target1|source2/target2"
+NAME_SUBSTITUTE = r""  # Replace/remove words: "source1/target1|source2/target2"
 FFMPEG_CMDS = {}  # Predefined FFmpeg commands, e.g., {"preset_name": ["-vf", "scale=1280:-1"]}
 UPLOAD_PATHS = {}  # Named upload paths, e.g., {"movies": "remote:movies/", "tv": "gdrive_id_tv_folder"}
 
